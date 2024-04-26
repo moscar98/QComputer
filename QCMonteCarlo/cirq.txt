@@ -1,0 +1,632 @@
+Circuito:
+(0, 0): ───H───M('result')───
+
+Resultados de la medición:
+Counter({0: 515, 1: 485})
+Help on Simulator in module cirq.sim.sparse_simulator object:
+
+class Simulator(cirq.sim.state_vector_simulator.SimulatesIntermediateStateVector, cirq.sim.simulator.SimulatesExpectationValues)
+ |  Simulator(*, dtype: Type[numpy.complexfloating] = <class 'numpy.complex64'>, noise: 'cirq.NOISE_MODEL_LIKE' = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, split_untangled_states: bool = True)
+ |  
+ |  A sparse matrix state vector simulator that uses numpy.
+ |  
+ |  This simulator can be applied on circuits that are made up of operations
+ |  that have a `_unitary_` method, or `_has_unitary_` and
+ |  `_apply_unitary_`, `_mixture_` methods, are measurements, or support a
+ |  `_decompose_` method that returns operations satisfying these same
+ |  conditions. That is to say, the operations should follow the
+ |  `cirq.SupportsConsistentApplyUnitary` protocol, the `cirq.SupportsUnitary`
+ |  protocol, the `cirq.SupportsMixture` protocol, or the
+ |  `cirq.SupportsDecompose` protocol. It is also permitted for the circuit
+ |  to contain measurements which are operations that support
+ |  `cirq.SupportsKraus` and `cirq.SupportsMeasurementKey`
+ |  
+ |  This can run simulations which mimic use of actual quantum hardware.
+ |  These simulations do not give access to the state vector (like actual
+ |  hardware).  There are two variations of run methods, one which takes in a
+ |  single (optional) way to resolve parameterized circuits, and a second which
+ |  takes in a list or sweep of parameter resolvers:
+ |  
+ |      run(circuit, param_resolver, repetitions)
+ |  
+ |      run_sweep(circuit, params, repetitions)
+ |  
+ |  The simulation performs optimizations if the number of repetitions is
+ |  greater than one and all measurements in the circuit are terminal (at the
+ |  end of the circuit). These methods return `Result`s which contain both
+ |  the measurement results, but also the parameters used for the parameterized
+ |  circuit operations. The initial state of a run is always the all 0s state
+ |  in the computational basis.
+ |  
+ |  By contrast, the simulate methods of the simulator give access to the
+ |  state vector of the simulation at the end of the simulation of the circuit.
+ |  These methods take in two parameters that the run methods do not: a
+ |  qubit order and an initial state. The qubit order is necessary because an
+ |  ordering must be chosen for the kronecker product (see
+ |  `DensityMatrixTrialResult` for details of this ordering). The initial
+ |  state can be either the full state vector, or an integer which represents
+ |  the initial state of being in a computational basis state for the binary
+ |  representation of that integer. Similar to run methods, there are two
+ |  simulate methods that run for single runs or for sweeps across different
+ |  parameters:
+ |  
+ |      simulate(circuit, param_resolver, qubit_order, initial_state)
+ |  
+ |      simulate_sweep(circuit, params, qubit_order, initial_state)
+ |  
+ |  The simulate methods, in contrast to the run methods, do not perform
+ |  repetitions. The result of these simulations is a
+ |  `SimulationTrialResult` which contains measurement
+ |  results, information about parameters used in the simulation, and
+ |  access to the state via the `state` method and
+ |  `cirq.sim.state_vector.StateVectorMixin` methods.
+ |  
+ |  If one wishes to perform simulations that have access to the
+ |  state vector as one steps through running the circuit, there is a generator
+ |  which can be iterated over.  Each step is an object that gives access
+ |  to the state vector.  This stepping through a `Circuit` is done on a
+ |  `Moment` by `Moment` manner.
+ |  
+ |      simulate_moment_steps(circuit, param_resolver, qubit_order,
+ |                            initial_state)
+ |  
+ |  One can iterate over the moments with the following (replace 'sim'
+ |  with your `Simulator` object):
+ |  
+ |      for step_result in sim.simulate_moment_steps(circuit):
+ |         # do something with the state vector via step_result.state_vector
+ |  
+ |  Note also that simulations can be stochastic, i.e. return different results
+ |  for different runs.  The first version of this occurs for measurements,
+ |  where the results of the measurement are recorded.  This can also
+ |  occur when the circuit has mixtures of unitaries.
+ |  
+ |  If only the expectation values for some observables on the final state are
+ |  required, there are methods for that as well. These methods take a mapping
+ |  of names to observables, and return a map (or list of maps) of those names
+ |  to the corresponding expectation values.
+ |  
+ |      simulate_expectation_values(circuit, observables, param_resolver,
+ |                                  qubit_order, initial_state,
+ |                                  permit_terminal_measurements)
+ |  
+ |      simulate_expectation_values_sweep(circuit, observables, params,
+ |                                        qubit_order, initial_state,
+ |                                        permit_terminal_measurements)
+ |  
+ |  Expectation values generated by these methods are exact (up to precision of
+ |  the floating-point type used); the closest analogy on hardware requires
+ |  estimating the expectation values from several samples.
+ |  
+ |  See `Simulator` for the definitions of the supported methods.
+ |  
+ |  Method resolution order:
+ |      Simulator
+ |      cirq.sim.state_vector_simulator.SimulatesIntermediateStateVector
+ |      cirq.sim.simulator_base.SimulatorBase
+ |      cirq.sim.simulator.SimulatesIntermediateState
+ |      cirq.sim.simulator.SimulatesFinalState
+ |      typing.Generic
+ |      cirq.sim.simulator.SimulatesSamples
+ |      cirq.work.sampler.Sampler
+ |      cirq.sim.simulator.SimulatesAmplitudes
+ |      cirq.sim.simulator.SimulatesExpectationValues
+ |      builtins.object
+ |  
+ |  Methods defined here:
+ |  
+ |  __init__(self, *, dtype: Type[numpy.complexfloating] = <class 'numpy.complex64'>, noise: 'cirq.NOISE_MODEL_LIKE' = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, split_untangled_states: bool = True)
+ |      A sparse matrix simulator.
+ |      
+ |      Args:
+ |          dtype: The `numpy.dtype` used by the simulation. One of
+ |              `numpy.complex64` or `numpy.complex128`.
+ |          noise: A noise model to apply while simulating.
+ |          seed: The random seed to use for this simulator.
+ |          split_untangled_states: If True, optimizes simulation by running
+ |              unentangled qubit sets independently and merging those states
+ |              at the end.
+ |      
+ |      Raises:
+ |          ValueError: If the given dtype is not complex.
+ |  
+ |  run_sweep_async(self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1) -> Sequence[ForwardRef('cirq.Result')]
+ |      Asynchronously samples from the given Circuit.
+ |      
+ |      By default, this method invokes `run_sweep` synchronously and simply
+ |      exposes its result is an awaitable. Child classes that are capable of
+ |      true asynchronous sampling should override it to use other strategies.
+ |      
+ |      Args:
+ |          program: The circuit to sample from.
+ |          params: Parameters to run with the program.
+ |          repetitions: The number of times to sample.
+ |      
+ |      Returns:
+ |          Result list for this run; one for each possible parameter resolver.
+ |  
+ |  simulate_expectation_values_sweep_iter(self, program: 'cirq.AbstractCircuit', observables: Union[ForwardRef('cirq.PauliSumLike'), List[ForwardRef('cirq.PauliSumLike')]], params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None, permit_terminal_measurements: bool = False) -> Iterator[List[float]]
+ |      Simulates the supplied circuit and calculates exact expectation
+ |      values for the given observables on its final state, sweeping over the
+ |      given params.
+ |      
+ |      This method has no perfect analogy in hardware. Instead compare with
+ |      Sampler.sample_expectation_values, which calculates estimated
+ |      expectation values by sampling multiple times.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          observables: An observable or list of observables.
+ |          params: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |          initial_state: The initial state for the simulation. The form of
+ |              this state depends on the simulation implementation. See
+ |              documentation of the implementing class for details.
+ |          permit_terminal_measurements: If the provided circuit ends in a
+ |              measurement, this method will generate an error unless this
+ |              is set to True. This is meant to prevent measurements from
+ |              ruining expectation value calculations.
+ |      
+ |      Returns:
+ |          An Iterator over expectation-value lists. The outer index determines
+ |          the sweep, and the inner index determines the observable. For
+ |          instance, results[1][3] would select the fourth observable measured
+ |          in the second sweep.
+ |      
+ |      Raises:
+ |          ValueError if 'program' has terminal measurement(s) and
+ |          'permit_terminal_measurements' is False.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Data and other attributes defined here:
+ |  
+ |  __abstractmethods__ = frozenset()
+ |  
+ |  __orig_bases__ = (cirq.sim.state_vector_simulator.SimulatesIntermediat...
+ |  
+ |  __parameters__ = ()
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.state_vector_simulator.SimulatesIntermediateStateVector:
+ |  
+ |  compute_amplitudes_sweep_iter(self, program: 'cirq.AbstractCircuit', bitstrings: Sequence[int], params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>) -> Iterator[Sequence[complex]]
+ |      Computes the desired amplitudes.
+ |      
+ |      The initial state is assumed to be the all zeros state.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          bitstrings: The bitstrings whose amplitudes are desired, input
+ |              as an integer array where each integer is formed from measured
+ |              qubit values according to `qubit_order` from most to least
+ |              significant qubit, i.e. in big-endian ordering. If inputting
+ |              a binary literal add the prefix 0b or 0B.
+ |              For example: 0010 can be input as 0b0010, 0B0010, 2, 0x2, etc.
+ |          params: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |      
+ |      Returns:
+ |          An Iterator over lists of amplitudes. The outer dimension indexes
+ |          the circuit parameters and the inner dimension indexes bitstrings.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator_base.SimulatorBase:
+ |  
+ |  simulate_sweep_iter(self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None) -> Iterator[~TSimulationTrialResult]
+ |      Simulates the supplied Circuit.
+ |      
+ |      This particular implementation overrides the base implementation such
+ |      that an unparameterized prefix circuit is simulated and fed into the
+ |      parameterized suffix circuit.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          params: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |          initial_state: The initial state for the simulation. This can be
+ |              either a raw state or an `SimulationStateBase`. The form of the
+ |              raw state depends on the simulation implementation. See
+ |              documentation of the implementing class for details.
+ |      
+ |      Returns:
+ |          List of SimulationTrialResults for this run, one for each
+ |          possible parameter resolver.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Readonly properties inherited from cirq.sim.simulator_base.SimulatorBase:
+ |  
+ |  noise
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator.SimulatesIntermediateState:
+ |  
+ |  simulate_moment_steps(self, circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolverOrSimilarType' = None, qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None) -> Iterator[~TStepResult]
+ |      Returns an iterator of StepResults for each moment simulated.
+ |      
+ |      If the circuit being simulated is empty, a single step result should
+ |      be returned with the state being set to the initial state.
+ |      
+ |      Args:
+ |          circuit: The Circuit to simulate.
+ |          param_resolver: A ParamResolver for determining values of Symbols.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |          initial_state: The initial state for the simulation. This can be
+ |              either a raw state or a `TSimulationState`. The form of the
+ |              raw state depends on the simulation implementation. See
+ |              documentation of the implementing class for details.
+ |      
+ |      Returns:
+ |          Iterator that steps through the simulation, simulating each
+ |          moment and returning a StepResult for each moment.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator.SimulatesFinalState:
+ |  
+ |  simulate(self, program: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolverOrSimilarType' = None, qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None) -> ~TSimulationTrialResult
+ |      Simulates the supplied Circuit.
+ |      
+ |      This method returns a result which allows access to the entire
+ |      simulator's final state.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          param_resolver: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |          initial_state: The initial state for the simulation. The form of
+ |              this state depends on the simulation implementation. See
+ |              documentation of the implementing class for details.
+ |      
+ |      Returns:
+ |          SimulationTrialResults for the simulation. Includes the final state.
+ |  
+ |  simulate_sweep(self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None) -> List[~TSimulationTrialResult]
+ |      Wraps computed states in a list.
+ |      
+ |      Prefer overriding `simulate_sweep_iter`.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from cirq.sim.simulator.SimulatesFinalState:
+ |  
+ |  __dict__
+ |      dictionary for instance variables (if defined)
+ |  
+ |  __weakref__
+ |      list of weak references to the object (if defined)
+ |  
+ |  ----------------------------------------------------------------------
+ |  Class methods inherited from typing.Generic:
+ |  
+ |  __class_getitem__(params) from cirq.value.abc_alt.ABCMetaImplementAnyOneOf
+ |  
+ |  __init_subclass__(*args, **kwargs) from cirq.value.abc_alt.ABCMetaImplementAnyOneOf
+ |      This method is called when a class is subclassed.
+ |      
+ |      The default implementation does nothing. It may be
+ |      overridden to extend subclasses.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator.SimulatesSamples:
+ |  
+ |  run_sweep(self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1) -> Sequence[ForwardRef('cirq.Result')]
+ |      Samples from the given Circuit.
+ |      
+ |      This allows for sweeping over different parameter values,
+ |      unlike the `run` method.  The `params` argument will provide a
+ |      mapping from `sympy.Symbol`s used within the circuit to a set of
+ |      values.  Unlike the `run` method, which specifies a single
+ |      mapping from symbol to value, this method allows a "sweep" of
+ |      values.  This allows a user to specify execution of a family of
+ |      related circuits efficiently.
+ |      
+ |      Args:
+ |          program: The circuit to sample from.
+ |          params: Parameters to run with the program.
+ |          repetitions: The number of times to sample.
+ |      
+ |      Returns:
+ |          Result list for this run; one for each possible parameter resolver.
+ |  
+ |  run_sweep_iter(self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1) -> Iterator[ForwardRef('cirq.Result')]
+ |      Runs the supplied Circuit, mimicking quantum hardware.
+ |      
+ |      In contrast to run, this allows for sweeping over different parameter
+ |      values.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          params: Parameters to run with the program.
+ |          repetitions: The number of repetitions to simulate.
+ |      
+ |      Returns:
+ |          Result list for this run; one for each possible parameter
+ |          resolver.
+ |      
+ |      Raises:
+ |          ValueError: If the circuit has no measurements.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.work.sampler.Sampler:
+ |  
+ |  run(self, program: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolverOrSimilarType' = None, repetitions: int = 1) -> 'cirq.Result'
+ |      Samples from the given `Circuit`.
+ |      
+ |      This mode of operation for a sampler will provide results
+ |      in the form of measurement outcomes.  It will not provide
+ |      access to state vectors (even if the underlying
+ |      sampling mechanism is a simulator).  This method will substitute
+ |      parameters in the `param_resolver` attributes for `sympy.Symbols`
+ |      used within the Circuit.  This circuit will be executed a number
+ |      of times specified in the `repetitions` attribute, though some
+ |      simulated implementations may instead sample from the final
+ |      distribution rather than execute the circuit each time.
+ |      
+ |      Args:
+ |          program: The circuit to sample from.
+ |          param_resolver: Parameters to run with the program.
+ |          repetitions: The number of times to sample.
+ |      
+ |      Returns:
+ |          `cirq.Result` that contains all the measurements for a run.
+ |  
+ |  async run_async(self, program: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolverOrSimilarType' = None, repetitions: int = 1) -> 'cirq.Result'
+ |      Asynchronously samples from the given Circuit.
+ |      
+ |      Provides measurement outcomes as a `cirq.Result` object.  This
+ |      interface will operate in a similar way to the `run` method
+ |      except for executing asynchronously.
+ |      
+ |      Args:
+ |          program: The circuit to sample from.
+ |          param_resolver: Parameters to run with the program.
+ |          repetitions: The number of times to sample.
+ |      
+ |      Returns:
+ |          Result for a run.
+ |  
+ |  run_batch(self, programs: Sequence[ForwardRef('cirq.AbstractCircuit')], params_list: Optional[Sequence[ForwardRef('cirq.Sweepable')]] = None, repetitions: Union[int, Sequence[int]] = 1) -> Sequence[Sequence[ForwardRef('cirq.Result')]]
+ |      Runs the supplied circuits.
+ |      
+ |      Each circuit provided in `programs` will pair with the optional
+ |      associated parameter sweep provided in the `params_list`, and be run
+ |      with the associated repetitions provided in `repetitions` (if
+ |      `repetitions` is an integer, then all runs will have that number of
+ |      repetitions). If `params_list` is specified, then the number of
+ |      circuits is required to match the number of sweeps. Similarly, when
+ |      `repetitions` is a list, the number of circuits is required to match
+ |      the length of this list.
+ |      
+ |      By default, this method simply invokes `run_sweep` sequentially for
+ |      each (circuit, parameter sweep, repetitions) tuple. Child classes that
+ |      are capable of sampling batches more efficiently should override it to
+ |      use other strategies. Note that child classes may have certain
+ |      requirements that must be met in order for a speedup to be possible,
+ |      such as a constant number of repetitions being used for all circuits.
+ |      Refer to the documentation of the child class for any such requirements.
+ |      
+ |      Args:
+ |          programs: The circuits to execute as a batch.
+ |          params_list: Parameter sweeps to use with the circuits. The number
+ |              of sweeps should match the number of circuits and will be
+ |              paired in order with the circuits.
+ |          repetitions: Number of circuit repetitions to run. Can be specified
+ |              as a single value to use for all runs, or as a list of values,
+ |              one for each circuit.
+ |      
+ |      Returns:
+ |          A list of lists of TrialResults. The outer list corresponds to
+ |          the circuits, while each inner list contains the TrialResults
+ |          for the corresponding circuit, in the order imposed by the
+ |          associated parameter sweep.
+ |      
+ |      Raises:
+ |          ValueError: If length of `programs` is not equal to the length
+ |              of `params_list` or the length of `repetitions`.
+ |  
+ |  async run_batch_async(self, programs: Sequence[ForwardRef('cirq.AbstractCircuit')], params_list: Optional[Sequence[ForwardRef('cirq.Sweepable')]] = None, repetitions: Union[int, Sequence[int]] = 1) -> Sequence[Sequence[ForwardRef('cirq.Result')]]
+ |      Runs the supplied circuits asynchronously.
+ |      
+ |      See docs for `cirq.Sampler.run_batch`.
+ |  
+ |  sample(self, program: 'cirq.AbstractCircuit', *, repetitions: int = 1, params: 'cirq.Sweepable' = None) -> 'pd.DataFrame'
+ |      Samples the given Circuit, producing a pandas data frame.
+ |      
+ |      This interface will operate in a similar way to the `run` method
+ |      except that it returns a pandas data frame rather than a `cirq.Result`
+ |      object.
+ |      
+ |      Args:
+ |          program: The circuit to sample from.
+ |          repetitions: The number of times to sample the program, for each
+ |              parameter mapping.
+ |          params: Maps symbols to one or more values. This argument can be
+ |              a dictionary, a list of dictionaries, a `cirq.Sweep`, a list of
+ |              `cirq.Sweep`, etc. The program will be sampled `repetition`
+ |              times for each mapping. Defaults to a single empty mapping.
+ |      
+ |      Returns:
+ |          A `pandas.DataFrame` with a row for each sample, and a column for
+ |          each measurement key as well as a column for each symbolic
+ |          parameter.  Measurement results are stored as a big endian integer
+ |          representation with one bit for each measured qubit in the key.
+ |          See `cirq.big_endian_int_to_bits` and similar functions for how
+ |          to convert this integer into bits.
+ |          There is an also index column containing the repetition number,
+ |          for each parameter assignment.
+ |      
+ |      Raises:
+ |          ValueError: If a supplied sweep is invalid.
+ |      
+ |      Examples:
+ |          >>> a, b, c = cirq.LineQubit.range(3)
+ |          >>> sampler = cirq.Simulator()
+ |          >>> circuit = cirq.Circuit(cirq.X(a),
+ |          ...                        cirq.measure(a, key='out'))
+ |          >>> print(sampler.sample(circuit, repetitions=4))
+ |             out
+ |          0    1
+ |          1    1
+ |          2    1
+ |          3    1
+ |      
+ |          >>> circuit = cirq.Circuit(cirq.X(a),
+ |          ...                        cirq.CNOT(a, b),
+ |          ...                        cirq.measure(a, b, c, key='out'))
+ |          >>> print(sampler.sample(circuit, repetitions=4))
+ |             out
+ |          0    6
+ |          1    6
+ |          2    6
+ |          3    6
+ |      
+ |          >>> circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
+ |          ...                        cirq.measure(a, key='out'))
+ |          >>> print(sampler.sample(
+ |          ...     circuit,
+ |          ...     repetitions=3,
+ |          ...     params=[{'t': 0}, {'t': 1}]))
+ |             t  out
+ |          0  0    0
+ |          1  0    0
+ |          2  0    0
+ |          0  1    1
+ |          1  1    1
+ |          2  1    1
+ |  
+ |  sample_expectation_values(self, program: 'cirq.AbstractCircuit', observables: Union[ForwardRef('cirq.PauliSumLike'), List[ForwardRef('cirq.PauliSumLike')]], *, num_samples: int, params: 'cirq.Sweepable' = None, permit_terminal_measurements: bool = False) -> Sequence[Sequence[float]]
+ |      Calculates estimated expectation values from samples of a circuit.
+ |      
+ |      Please see also `cirq.work.observable_measurement.measure_observables`
+ |      for more control over how to measure a suite of observables.
+ |      
+ |      This method can be run on any device or simulator that supports circuit sampling. Compare
+ |      with `simulate_expectation_values` in simulator.py, which is limited to simulators
+ |      but provides exact results.
+ |      
+ |      Args:
+ |          program: The circuit which prepares a state from which we sample expectation values.
+ |          observables: A list of observables for which to calculate expectation values.
+ |          num_samples: The number of samples to take. Increasing this value increases the
+ |              statistical accuracy of the estimate.
+ |          params: Parameters to run with the program.
+ |          permit_terminal_measurements: If the provided circuit ends in a measurement, this
+ |              method will generate an error unless this is set to True. This is meant to
+ |              prevent measurements from ruining expectation value calculations.
+ |      
+ |      Returns:
+ |          A list of expectation-value lists. The outer index determines the sweep, and the inner
+ |          index determines the observable. For instance, results[1][3] would select the fourth
+ |          observable measured in the second sweep.
+ |      
+ |      Raises:
+ |          ValueError: If the number of samples was not positive, if empty observables were
+ |              supplied, or if the provided circuit has terminal measurements and
+ |              `permit_terminal_measurements` is true.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator.SimulatesAmplitudes:
+ |  
+ |  compute_amplitudes(self, program: 'cirq.AbstractCircuit', bitstrings: Sequence[int], param_resolver: 'cirq.ParamResolverOrSimilarType' = None, qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>) -> Sequence[complex]
+ |      Computes the desired amplitudes.
+ |      
+ |      The initial state is assumed to be the all zeros state.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          bitstrings: The bitstrings whose amplitudes are desired, input
+ |              as an integer array where each integer is formed from measured
+ |              qubit values according to `qubit_order` from most to least
+ |              significant qubit, i.e. in big-endian ordering. If inputting
+ |              a binary literal add the prefix 0b or 0B.
+ |              For example: 0010 can be input as 0b0010, 0B0010, 2, 0x2, etc.
+ |          param_resolver: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |      
+ |      Returns:
+ |          List of amplitudes.
+ |  
+ |  compute_amplitudes_sweep(self, program: 'cirq.AbstractCircuit', bitstrings: Sequence[int], params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>) -> Sequence[Sequence[complex]]
+ |      Wraps computed amplitudes in a list.
+ |      
+ |      Prefer overriding `compute_amplitudes_sweep_iter`.
+ |  
+ |  sample_from_amplitudes(self, circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE', repetitions: int = 1, qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>) -> Dict[int, int]
+ |      Uses amplitude simulation to sample from the given circuit.
+ |      
+ |      This implements the algorithm outlined by Bravyi, Gosset, and Liu in
+ |      https://arxiv.org/abs/2112.08499 to more efficiently calculate samples
+ |      given an amplitude-based simulator.
+ |      
+ |      Simulators which also implement SimulatesSamples or SimulatesFullState
+ |      should prefer `run()` or `simulate()`, respectively, as this method
+ |      only accelerates sampling for amplitude-based simulators.
+ |      
+ |      Args:
+ |          circuit: The circuit to simulate.
+ |          param_resolver: Parameters to run with the program.
+ |          seed: Random state to use as a seed. This must be provided
+ |              manually - if the simulator has its own seed, it will not be
+ |              used unless it is passed as this argument.
+ |          repetitions: The number of repetitions to simulate.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |      
+ |      Returns:
+ |          A dict of bitstrings sampled from the final state of `circuit` to
+ |          the number of occurrences of that bitstring.
+ |      
+ |      Raises:
+ |          ValueError: if 'circuit' has non-unitary elements, as differences
+ |              in behavior between sampling steps break this algorithm.
+ |  
+ |  ----------------------------------------------------------------------
+ |  Methods inherited from cirq.sim.simulator.SimulatesExpectationValues:
+ |  
+ |  simulate_expectation_values(self, program: 'cirq.AbstractCircuit', observables: Union[ForwardRef('cirq.PauliSumLike'), List[ForwardRef('cirq.PauliSumLike')]], param_resolver: 'cirq.ParamResolverOrSimilarType' = None, qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None, permit_terminal_measurements: bool = False) -> List[float]
+ |      Simulates the supplied circuit and calculates exact expectation
+ |      values for the given observables on its final state.
+ |      
+ |      This method has no perfect analogy in hardware. Instead compare with
+ |      Sampler.sample_expectation_values, which calculates estimated
+ |      expectation values by sampling multiple times.
+ |      
+ |      Args:
+ |          program: The circuit to simulate.
+ |          observables: An observable or list of observables.
+ |          param_resolver: Parameters to run with the program.
+ |          qubit_order: Determines the canonical ordering of the qubits. This
+ |              is often used in specifying the initial state, i.e. the
+ |              ordering of the computational basis states.
+ |          initial_state: The initial state for the simulation. The form of
+ |              this state depends on the simulation implementation. See
+ |              documentation of the implementing class for details.
+ |          permit_terminal_measurements: If the provided circuit ends with
+ |              measurement(s), this method will generate an error unless this
+ |              is set to True. This is meant to prevent measurements from
+ |              ruining expectation value calculations.
+ |      
+ |      Returns:
+ |          A list of expectation values, with the value at index `n`
+ |          corresponding to `observables[n]` from the input.
+ |      
+ |      Raises:
+ |          ValueError if 'program' has terminal measurement(s) and
+ |          'permit_terminal_measurements' is False.
+ |  
+ |  simulate_expectation_values_sweep(self, program: 'cirq.AbstractCircuit', observables: Union[ForwardRef('cirq.PauliSumLike'), List[ForwardRef('cirq.PauliSumLike')]], params: 'cirq.Sweepable', qubit_order: 'cirq.QubitOrderOrList' = <cirq.ops.qubit_order.QubitOrder object at 0x7f7507830b50>, initial_state: Any = None, permit_terminal_measurements: bool = False) -> List[List[float]]
+ |      Wraps computed expectation values in a list.
+ |      
+ |      Prefer overriding `simulate_expectation_values_sweep_iter`.
+
